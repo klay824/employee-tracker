@@ -13,7 +13,7 @@ const connection = mysql.createConnection({
 
   // Your password
   password: 'Office32',
-  database: 'employeeDB',
+  database: 'employee_trackerDB',
 });
 
 
