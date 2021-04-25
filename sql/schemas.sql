@@ -31,3 +31,6 @@ CREATE TABLE employee (
 
 ALTER TABLE employee
 ADD FOREIGN KEY (role_id) REFERENCES role (role_id)
+
+
+-- DB Joins
