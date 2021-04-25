@@ -1,7 +1,7 @@
-DROP DATABASE IF EXISTS employeeDB;
-CREATE DATABASE employeeDB;
+DROP DATABASE IF EXISTS employee_trackerDB;
+CREATE DATABASE employee_trackerDB;
 
-USE employeeDB;
+USE employee_trackerDB;
 
 CREATE TABLE department (
     department_id INT NOT NULL AUTO_INCREMENT,
@@ -26,9 +26,8 @@ CREATE TABLE employee (
     last_name VARCHAR(30),
     PRIMARY KEY (employee_id),
     role_id INT NOT NULL,
-    manager_id INT NOT NULL
+    manager_id INT NULL references employee
 );
 
 ALTER TABLE employee
-ADD FOREIGN KEY (role_id) REFERENCES role (role_id),
-ADD FOREIGN KEY (manager_id) REFERENCES employee (employee_id);
+ADD FOREIGN KEY (role_id) REFERENCES role (role_id)
