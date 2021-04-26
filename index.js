@@ -97,7 +97,7 @@ const viewAll = () => {
     SELECT employee.id, employee.first_name, employee.last_name, role.title,
     department.name as 'department',
     role.salary,
-    employee.manager as manager
+    employee.manager as 'manager'
     FROM employee
     INNER JOIN `
 }
