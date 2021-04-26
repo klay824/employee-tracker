@@ -30,7 +30,7 @@ VALUES
     ('Angela', 'Martin', 1, 2),
     ('Kevin', 'Malone', 1, 2),
     ('Michael', 'Scott', 2, 5),
-    ('Jan', 'Levinson', 2, 0),
+    ('Jan', 'Levinson', 2, NULL),
     ('Kelly', 'Kapoor', 3, 2),
     ('Toby', 'Flenderson', 4, 5),
     ('Pam', 'Beesly', 5, 2),
