@@ -304,3 +304,38 @@ const updateRole = () => {
       })  
     })
 }
+
+const updateMgr = () => {
+
+  connection.query('SELECT * FROM employee', (err, data) => {
+    if(err) throw err;  
+    console.log(data);
+
+    inquirer
+      .prompt([
+        {
+          name: 'employeeFN',
+          type: 'input',
+          message: 'Please enter the first name of the employee whose title you want to update.',
+        },
+        {
+          name: 'employeeLN',
+          type: 'input',
+          message: 'Please enter the last name of the employee whose title you want to update',
+        },
+        {
+          name: 'empNewMgr',
+          type: 'rawlist',
+          choices() {
+            const choiceArray = [];
+            data.forEach(({ first_name, last_name }) => {
+              choiceArray.push(first_name, last_name);
+            });
+            console.log(choiceArray);
+            return choiceArray;
+            
+          }
+        },
+      ])
+  })
+}
