@@ -14,7 +14,7 @@ const selectionOptions = {
   REMOVE_EMPLOYEE: 'Remove an employee',
   UPDATE_ROLE: 'Update an employees role',
   UPDATE_MGR: 'Update an employees manager',
-  EXIT: 'exit'
+  EXIT: 'Exit'
 };
 
 // create the connection information for the sql database
@@ -111,6 +111,7 @@ const viewAll = () => {
     LEFT JOIN department ON role.department_id = department.id`;
   connection.query(query, (err, res) => {
     if(err) throw err;
+    console.log('These are the employees of Dunder Mifflin Paper Company.')
     console.table(res);
     start();
   })
@@ -139,6 +140,7 @@ const viewByDept = () => {
         LEFT JOIN department ON role.department_id = department.id WHERE name = ?`;
       connection.query(query, [answer.dept], (err, res) => {
         if(err) throw err;
+        console.log(`These are the employees of ${answer.dept}.`)
         console.table(res);
         start();
       })
@@ -168,6 +170,7 @@ const viewByMgr = () => {
         LEFT JOIN department ON role.department_id = department.id HAVING manager = ?`;
       connection.query(query, [answer.mgr], (err, res) => {
         if(err) throw err;
+        console.log(`These employees report directly to ${answer.mgr}.`)
         console.table(res);
         start();
       })
@@ -212,9 +215,7 @@ const addEmployee = () => {
 
           connection.query(query2, (err, manager) => {
             managerId = manager[0].id;
-            console.log(roleId);
-            console.log(managerId);
-
+            
               connection.query(
                 'INSERT INTO employee SET ?',
                 {
@@ -225,11 +226,37 @@ const addEmployee = () => {
                 },
                 (err) => {
                   if(err) throw err;
-                  console.log('You have successfully added a new employee.');
+                  console.log(`${answer.rmEmpFN} ${answer.rmEmpLN} is now an employee of Dunder Mifflin Paper Company. Let's get 'em a welcome basket!`);
                   start();
                 }
               )
           })
       })
+    })
+}
+
+const rmEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        name: 'rmEmpFN',
+        type: 'input',
+        message: 'Please enter the first name of the employee you wish to remove.',
+      },
+      {
+        name: 'rmEmpLN',
+        type: 'input',
+        message: 'Please enter the last name of the employee you wish to remove.',
+      },
+    ])
+    .then((answer) => {
+      connection.query(
+        `DELETE FROM employee WHERE first_name = "${answer.rmEmpFN}" AND last_name = "${answer.rmEmpLN}"`,
+        (err) => {
+          if(err) throw err;
+          console.log(`${answer.rmEmpFN} ${answer.rmEmpLN} is no longer an employee of Dunder Mifflin Paper Company. Sad day.`)
+          start();
+        }
+      )
     })
 }
