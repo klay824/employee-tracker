@@ -94,7 +94,13 @@ const start = () => {
 
 const viewAll = () => {
   const query = `
-    SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) AS employee, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+    SELECT 
+    employee.id, 
+    CONCAT(employee.first_name, ' ', employee.last_name) AS employee, 
+    role.title, 
+    department.name AS department, 
+    role.salary, 
+    CONCAT(manager.first_name, ' ', manager.last_name) AS manager
     FROM employee
     LEFT JOIN employee manager ON manager.id = employee.manager_id
     LEFT JOIN role ON employee.role_id = role.id
@@ -116,7 +122,13 @@ const viewByDept = () => {
     })
     .then((answer) => {
       const query = `
-        SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) AS employee, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+        SELECT 
+        employee.id, 
+        CONCAT(employee.first_name, ' ', employee.last_name) AS employee, 
+        role.title, 
+        department.name AS department, 
+        role.salary, 
+        CONCAT(manager.first_name, ' ', manager.last_name) AS manager
         FROM employee
         LEFT JOIN employee manager ON manager.id = employee.manager_id
         LEFT JOIN role ON employee.role_id = role.id
@@ -139,7 +151,13 @@ const viewByMgr = () => {
     })
     .then((answer) => {
       const query = `
-        SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, CONCAT(employee.first_name, ' ', employee.last_name) AS employee, employee.id AS employee_id, role.title, department.name AS department, role.salary
+        SELECT 
+        CONCAT(manager.first_name, ' ', manager.last_name) AS manager, 
+        CONCAT(employee.first_name, ' ', employee.last_name) AS employee, 
+        employee.id AS employee_id, 
+        role.title, 
+        department.name AS department, 
+        role.salary
         FROM employee
         LEFT JOIN employee manager ON manager.id = employee.manager_id
         LEFT JOIN role ON employee.role_id = role.id
