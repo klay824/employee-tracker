@@ -2,6 +2,10 @@ const mysql = require('mysql');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
+const Department = require('./lib/department');
+const Employee = require('./lib/employee');
+const Role = require('./lib/role');
+
 const selectionOptions = {
   VIEW_ALL_EMPLOYEES: 'View all employees',
   VIEW_ALL_BY_DEPT: 'View all employees by department',
@@ -190,19 +194,26 @@ const addEmployee = () => {
         choices: ['Accounting', 'Corporate', 'Customer Service', 'Human Resources', 'Reception', 'Quality Assurance', 'Sales', 'Supplier Relations', 'Warehouse',],
       },
       {
-        name: 'newEmpDept',
-        type: 'list',
-        message: 'Please select the title for the new employee',
-        choices: ['Accountant', 'Manager', 'Customer Service Rep', 'HR Rep', 'Receptionist', 'QA Rep', 'Salesman', 'Supplier Rel Rep', 'Warehouse Foreman',],
-      },
-      {
         name: 'newEmpMgr',
         type: 'list',
         message: 'Please select the manager for the new employee',
         choices: ['Jan Levinson', 'Michael Scott',],
-      }
+      },
     ])
     .then((answer) => {
-      
+      connection.query(
+        'INSERT INTO employee SET ?',
+        {
+          first_name: answer.newEmpFN,
+          last_name: answer.newEmpLN,
+          role_id: parseInt(answer.newEmpTitle),
+          manager_id: parseInt(answer.newEmpMgr),
+        },
+        (err) => {
+          if(err) throw err;
+          console.log('You have successfully added a new employee.');
+          start();
+        }
+      )
     })
 }
