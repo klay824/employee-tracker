@@ -204,33 +204,33 @@ const addEmployee = () => {
     .then((answer) => {
       const query1 = `SELECT id FROM role WHERE title = "${answer.newEmpTitle}"`
       const query2 = `SELECT id FROM employee WHERE first_name = "${answer.newEmpMgr.split(' ')[0]}" AND last_name = "${answer.newEmpMgr.split(' ')[1]}"`
-      let roleId;
-      let managerId;
-      connection.query(query1, (err, data) => {
-        console.log("query1", data[0].id);
-        roleId = data[0].id;
-        return roleId;
-      });
-      connection.query(query2, (err, data) => {
-        console.log("query2", data[0].id);
-        managerId = data[0].id;
-        return managerId;
-      });
-      console.log("role", roleId);
-      console.log("manager", managerId);
-      connection.query(
-        'INSERT INTO employee SET ?',
-        {
-          first_name: answer.newEmpFN,
-          last_name: answer.newEmpLN,
-          role_id: query1.roleId,
-          manager_id: query2.managerId,
-        },
-        (err) => {
-          if(err) throw err;
-          console.log('You have successfully added a new employee.');
-          start();
-        }
-      )
-    })
+      let roleId = 7;
+      let managerId = 4;
+        connection.query(query1, (err, data) => {
+          console.log("query1", data[0].id);
+          roleId = data[0].id;
+          return roleId;
+        });
+        connection.query(query2, (err, data) => {
+          console.log("query2", data[0].id);
+          managerId = data[0].id;
+          return managerId;
+        });
+        console.log("role", roleId);
+        console.log("manager", managerId);
+        connection.query(
+          'INSERT INTO employee SET ?',
+          {
+            first_name: answer.newEmpFN,
+            last_name: answer.newEmpLN,
+            role_id: roleId,
+            manager_id: managerId,
+          },
+          (err) => {
+            if(err) throw err;
+            console.log('You have successfully added a new employee.');
+            start();
+          }
+        )
+      })
 }
