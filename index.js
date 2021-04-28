@@ -190,8 +190,8 @@ const addEmployee = () => {
       {
         name: 'newEmpTitle',
         type: 'list',
-        message: 'Please select the department of the new employee',
-        choices: ['Accounting', 'Corporate', 'Customer Service', 'Human Resources', 'Reception', 'Quality Assurance', 'Sales', 'Supplier Relations', 'Warehouse',],
+        message: 'Please select the title of the new employee',
+        choices: ['Accountant', 'Manager', 'Customer Service Rep', 'HR Rep', 'Receptionist', 'QA Rep', 'Salesman', 'Supplier Rel Rep', 'Warehouse Foreman',],
       },
       {
         name: 'newEmpMgr',
@@ -200,14 +200,31 @@ const addEmployee = () => {
         choices: ['Jan Levinson', 'Michael Scott',],
       },
     ])
+    
     .then((answer) => {
+      const query1 = `SELECT id FROM role WHERE title = "${answer.newEmpTitle}"`
+      const query2 = `SELECT id FROM employee WHERE first_name = "${answer.newEmpMgr.split(' ')[0]}" AND last_name = "${answer.newEmpMgr.split(' ')[1]}"`
+      let roleId;
+      let managerId;
+      connection.query(query1, (err, data) => {
+        console.log("query1", data[0].id);
+        roleId = data[0].id;
+        return roleId;
+      });
+      connection.query(query2, (err, data) => {
+        console.log("query2", data[0].id);
+        managerId = data[0].id;
+        return managerId;
+      });
+      console.log("role", roleId);
+      console.log("manager", managerId);
       connection.query(
         'INSERT INTO employee SET ?',
         {
           first_name: answer.newEmpFN,
           last_name: answer.newEmpLN,
-          role_id: parseInt(answer.newEmpTitle),
-          manager_id: parseInt(answer.newEmpMgr),
+          role_id: query1.roleId,
+          manager_id: query2.managerId,
         },
         (err) => {
           if(err) throw err;
