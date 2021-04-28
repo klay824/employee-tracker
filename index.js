@@ -94,7 +94,7 @@ const start = () => {
 
 const viewAll = () => {
   const query = `
-    SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+    SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) AS employee, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
     FROM employee
     LEFT JOIN employee manager ON manager.id = employee.manager_id
     LEFT JOIN role ON employee.role_id = role.id
@@ -116,16 +116,75 @@ const viewByDept = () => {
     })
     .then((answer) => {
       const query = `
-      SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
-      FROM employee
-      LEFT JOIN employee manager ON manager.id = employee.manager_id
-      LEFT JOIN role ON employee.role_id = role.id
-      LEFT JOIN department ON role.department_id = department.id WHERE name = ?`;
+        SELECT employee.id, CONCAT(employee.first_name, ' ', employee.last_name) AS employee, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+        FROM employee
+        LEFT JOIN employee manager ON manager.id = employee.manager_id
+        LEFT JOIN role ON employee.role_id = role.id
+        LEFT JOIN department ON role.department_id = department.id WHERE name = ?`;
       connection.query(query, [answer.dept], (err, res) => {
         if(err) throw err;
         console.table(res);
         start();
       })
+    })  
+}
+
+const viewByMgr = () => {
+  inquirer
+    .prompt({
+      name: 'mgr',
+      type: 'list',
+      message: 'Choose a manager to view their direct reports.',
+      choices: ['Jan Levinson', 'Michael Scott',],
     })
-  
+    .then((answer) => {
+      const query = `
+        SELECT CONCAT(manager.first_name, ' ', manager.last_name) AS manager, CONCAT(employee.first_name, ' ', employee.last_name) AS employee, employee.id AS employee_id, role.title, department.name AS department, role.salary
+        FROM employee
+        LEFT JOIN employee manager ON manager.id = employee.manager_id
+        LEFT JOIN role ON employee.role_id = role.id
+        LEFT JOIN department ON role.department_id = department.id HAVING manager = ?`;
+      connection.query(query, [answer.mgr], (err, res) => {
+        if(err) throw err;
+        console.table(res);
+        start();
+      })
+    })
+}
+
+const addEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        name: 'newEmpFN',
+        type: 'input',
+        message: 'Please enter the first name of the new employee',
+      },
+      {
+        name: 'newEmpLN',
+        type: 'input',
+        message: 'Please enter the last name of the new employee',
+      },
+      {
+        name: 'newEmpTitle',
+        type: 'list',
+        message: 'Please select the department of the new employee',
+        choices: ['Accounting', 'Corporate', 'Customer Service', 'Human Resources', 'Reception', 'Quality Assurance', 'Sales', 'Supplier Relations', 'Warehouse',],
+      },
+      {
+        name: 'newEmpDept',
+        type: 'list',
+        message: 'Please select the title for the new employee',
+        choices: ['Accountant', 'Manager', 'Customer Service Rep', 'HR Rep', 'Receptionist', 'QA Rep', 'Salesman', 'Supplier Rel Rep', 'Warehouse Foreman',],
+      },
+      {
+        name: 'newEmpMgr',
+        type: 'list',
+        message: 'Please select the manager for the new employee',
+        choices: ['Jan Levinson', 'Michael Scott',],
+      }
+    ])
+    .then((answer) => {
+      
+    })
 }
