@@ -286,10 +286,8 @@ const updateRole = () => {
       const query = `SELECT id FROM role WHERE title = "${answer.empNewRole}"`
       let roleId;
       
-      connection.query(query, (err, role) => {
-        console.log(role);
-        roleId = role[0].id;
-        console.log(roleId);
+      connection.query(query, (err, role) => {        
+        roleId = role[0].id;        
       
         connection.query(
           `UPDATE employee
@@ -307,10 +305,9 @@ const updateRole = () => {
 
 const updateMgr = () => {
 
-  connection.query('SELECT * FROM employee', (err, data) => {
+  connection.query(`SELECT CONCAT(first_name, ' ', last_name) AS employee FROM employee`, (err, data) => {
     if(err) throw err;  
-    console.log(data);
-
+    
     inquirer
       .prompt([
         {
@@ -328,14 +325,25 @@ const updateMgr = () => {
           type: 'rawlist',
           choices() {
             const choiceArray = [];
-            data.forEach(({ first_name, last_name }) => {
-              choiceArray.push(first_name, last_name);
+            data.forEach(({ employee }) => {
+              choiceArray.push(employee);
             });
-            console.log(choiceArray);
-            return choiceArray;
-            
-          }
+            return choiceArray;            
+          },
+          message: `Please select the new manager for the employee.`
         },
       ])
+      .then((answer) => {
+        connection.query(`UPDATE employee 
+        SET manager_role = ${answer.empNewMgr} 
+        WHERE first_name = "${answer.employeeFN}" AND last_name = "${answer.employeeLN}"`)
+        console.log(answer);
+        (err) => {
+          if(err) throw err;
+          console.log(`You have successfully updated ${answer.employeeFN} ${answer.employeeLN}'s manager at Dunder Mifflin Paper Company!`)
+          start();
+        }
+        
+      })
   })
 }
