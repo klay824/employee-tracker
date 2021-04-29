@@ -8,8 +8,8 @@ const Role = require('./lib/role');
 
 const selectionOptions = {
   VIEW_ALL_EMPLOYEES: 'View all employees.',
-  VIEW_ALL_BY_DEPT: 'View all employees by department.',
-  VIEW_ALL_BY_ROLE: 'View all employees by title.',
+  VIEW_ALL_DEPTS: 'View all departments.',
+  VIEW_ALL_ROLES: 'View all titles.',
   VIEW_ALL_BY_MGR: 'View all employees by manager.',
   ADD_EMPLOYEE: 'Add an employee.',
   REMOVE_EMPLOYEE: 'Remove an employee.',
@@ -52,8 +52,8 @@ const start = () => {
       message: 'What would you like to do?',
       choices: [
         selectionOptions.VIEW_ALL_EMPLOYEES,
-        selectionOptions.VIEW_ALL_BY_DEPT,
-        selectionOptions.VIEW_ALL_BY_ROLE,
+        selectionOptions.VIEW_ALL_DEPTS,
+        selectionOptions.VIEW_ALL_ROLES,
         selectionOptions.VIEW_ALL_BY_MGR,
         selectionOptions.ADD_EMPLOYEE,
         selectionOptions.REMOVE_EMPLOYEE,
@@ -72,12 +72,12 @@ const start = () => {
           viewAll();
           break;
         
-        case selectionOptions.VIEW_ALL_BY_DEPT:
-          viewByDept();
+        case selectionOptions.VIEW_ALL_DEPTS:
+          viewAllDept();
           break;
 
-        case selectionOptions.VIEW_ALL_BY_ROLE:
-          viewByRole();
+        case selectionOptions.VIEW_ALL_ROLES:
+          viewAllRole();
           break;
 
         case selectionOptions.VIEW_ALL_BY_MGR:
@@ -147,71 +147,26 @@ const viewAll = () => {
   })
 }
 
-const viewByDept = () => {
-  inquirer
-    .prompt({
-      name: 'dept',
-      type: 'list',
-      message: 'Which department would you like to view?',
-      choices: ['Accounting', 'Corporate', 'Customer Service', 'Human Resources', 'Reception', 'Quality Assurance', 'Sales', 'Supplier Relations', 'Warehouse',],
+const viewAllDept = () => {
+  connection.query(
+    `Select * FROM department`,
+    (err, res) => {
+      if(err) throw err;
+      console.log('These are all the departments at Dunder Mifflin Paper Company!');
+      console.table(res);
+      start();
     })
-    .then((answer) => {
-      const query = `
-        SELECT 
-        employee.id, 
-        CONCAT(employee.first_name, ' ', employee.last_name) AS employee, 
-        role.title, 
-        department.name AS department, 
-        role.salary, 
-        CONCAT(manager.first_name, ' ', manager.last_name) AS manager
-        FROM employee
-        LEFT JOIN employee manager ON manager.id = employee.manager_id
-        LEFT JOIN role ON employee.role_id = role.id
-        LEFT JOIN department ON role.department_id = department.id WHERE name = ?`;
-      connection.query(query, [answer.dept], (err, res) => {
-        if(err) throw err;
-        console.log(`These are the employees of ${answer.dept}.`)
-        console.table(res);
-        start();
-      })
-    })  
 }
 
-const viewByRole = () => {
-  connection.query(`SELECT title FROM role`, (err, data) => {
-    if(err) throw err;
-  
-    inquirer
-      .prompt({
-        name: 'empRole',
-        type: 'list',
-        choices() {
-          const choiceArray = [];
-          data.forEach(({ title }) => {
-            choiceArray.push(title);
-          });
-          return choiceArray;            
-        },
-        message: `Please select the title you wish to view.`
-      })
-      .then((answer) => {
-        const query = `
-          SELECT role.title,
-          employee.id AS employee_id, 
-          CONCAT(employee.first_name, ' ', employee.last_name) AS employee,
-          role.salary,
-          CONCAT(manager.first_name, ' ', manager.last_name) AS manager
-          FROM employee
-          LEFT JOIN employee manager ON manager.id = employee.manager_id
-          LEFT JOIN role ON employee.role_id = role.id HAVING role.title = ?`;
-        connection.query(query, [answer.empRole], (err, res) => {
-          if(err) throw err;
-          console.log(`These employees are part of the ${answer.empRole} department.`);
-          console.table(res);
-          start();
-        })
-      })
-  })    
+const viewAllRole = () => {
+  connection.query(
+    `Select title FROM role`,
+    (err, res) => {
+      if(err) throw err;
+      console.log('These are all the employee titles at Dunder Mifflin Paper Company!');
+      console.table(res);
+      start();
+    })
 }
 
 const viewByMgr = () => {
@@ -328,9 +283,29 @@ const rmEmployee = () => {
     })
 }
 
-const addRole = () => {
-  
-}
+// const addRole = () => {
+//   inquirer
+//     .prompt([
+//       {
+//         name: 'newRole',
+//         type: 'input',
+//         message: 'Please enter the new title to add to Dunder Mifflin Paper Company',
+//       },
+//       {
+//         name: 'salary',
+//         type: 'input',
+//         message: 'Please enter the salary for the new title.',
+//       },
+//     ])
+//     .then((answer) => {
+//       connection.query(
+//         'INSERT INTO role SET ?',
+//         {
+
+//         }
+//       )
+//     })
+// }
 
 const updateRole = () => {
   inquirer
@@ -371,6 +346,23 @@ const updateRole = () => {
           }
         )
       })  
+    })
+}
+
+const addDepartment = () => {
+  inquirer
+    .prompt({
+      name: 'newDept',
+      type: 'input',
+      message: 'Please enter the name of the department you wish to add.',
+    })
+    .then((answer) => {
+      connection.query(`INSERT INTO department (name) VALUES ("${answer.newDept}")`, 
+      (err) => {
+        if(err) throw err;
+        console.log(`You have successfully added ${answer.newDept} to Dunder Mifflin Paper Company!`);
+        start();
+      })
     })
 }
 
