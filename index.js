@@ -334,16 +334,22 @@ const updateMgr = () => {
         },
       ])
       .then((answer) => {
-        connection.query(`UPDATE employee 
-        SET manager_role = ${answer.empNewMgr} 
-        WHERE first_name = "${answer.employeeFN}" AND last_name = "${answer.employeeLN}"`)
-        console.log(answer);
-        (err) => {
-          if(err) throw err;
-          console.log(`You have successfully updated ${answer.employeeFN} ${answer.employeeLN}'s manager at Dunder Mifflin Paper Company!`)
-          start();
-        }
+        const query = `SELECT id FROM employee WHERE first_name = "${answer.empNewMgr.split(' ')[0]}" AND last_name = "${answer.empNewMgr.split(' ')[1]}"`
+        let managerId;
+            
+        connection.query(query, (err, manager) => {
+          managerId = manager[0].id;
+          console.log(managerId);
         
+            connection.query(`UPDATE employee 
+            SET manager_id = ${managerId} 
+            WHERE first_name = "${answer.employeeFN}" AND last_name = "${answer.employeeLN}"`,            
+            (err) => {
+              if(err) throw err;
+              console.log(`You have successfully updated ${answer.employeeFN} ${answer.employeeLN}'s manager at Dunder Mifflin Paper Company!`)
+              start();
+            })
+        })
       })
   })
 }
