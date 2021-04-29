@@ -48,9 +48,14 @@ const start = () => {
       choices: [
         selectionOptions.VIEW_ALL_EMPLOYEES,
         selectionOptions.VIEW_ALL_BY_DEPT,
+        selectionOptions.VIEW_ALL_BY_ROLE,
         selectionOptions.VIEW_ALL_BY_MGR,
         selectionOptions.ADD_EMPLOYEE,
         selectionOptions.REMOVE_EMPLOYEE,
+        selectionOptions.ADD_ROLE,
+        selectionOptions.REMOVE_ROLE,
+        selectionOptions.ADD_DEPARTMENT,
+        selectionOptions.REMOVE_DEPARTMENT,
         selectionOptions.UPDATE_ROLE,
         selectionOptions.UPDATE_MGR,
         selectionOptions.EXIT,
@@ -66,6 +71,10 @@ const start = () => {
           viewByDept();
           break;
 
+        case selectionOptions.VIEW_ALL_BY_ROLE:
+          viewByRole();
+          break;
+
         case selectionOptions.VIEW_ALL_BY_MGR:
           viewByMgr();
           break;
@@ -78,8 +87,24 @@ const start = () => {
           rmEmployee();
           break;
 
+        case selectionOptions.ADD_ROLE:
+          addRole();
+          break;
+
+        case selectionOptions.REMOVE_ROLE:
+          rmRole();
+          break;
+
         case selectionOptions.UPDATE_ROLE:
           updateRole();
+          break;
+
+        case selectionOptions.ADD_DEPARTMENT:
+          addDepartment();
+          break;
+
+        case selectionOptions.REMOVE_DEPARTMENT:
+          rmDepartment();
           break;
 
         case selectionOptions.UPDATE_MGR:
