@@ -7,13 +7,18 @@ const Employee = require('./lib/employee');
 const Role = require('./lib/role');
 
 const selectionOptions = {
-  VIEW_ALL_EMPLOYEES: 'View all employees',
-  VIEW_ALL_BY_DEPT: 'View all employees by department',
-  VIEW_ALL_BY_MGR: 'View all employees by manager',
-  ADD_EMPLOYEE: 'Add an employee',
-  REMOVE_EMPLOYEE: 'Remove an employee',
-  UPDATE_ROLE: 'Update an employees role',
-  UPDATE_MGR: 'Update an employees manager',
+  VIEW_ALL_EMPLOYEES: 'View all employees.',
+  VIEW_ALL_BY_DEPT: 'View all employees by department.',
+  VIEW_ALL_BY_ROLE: 'View all employees by title.',
+  VIEW_ALL_BY_MGR: 'View all employees by manager.',
+  ADD_EMPLOYEE: 'Add an employee.',
+  REMOVE_EMPLOYEE: 'Remove an employee.',
+  ADD_ROLE: 'Add a title.',
+  REMOVE_ROLE: 'Remove a title',
+  UPDATE_ROLE: 'Update an employees role.',
+  ADD_DEPARTMENT: 'Add a department',
+  REMOVE_DEPARTMENT: 'Remove a department',
+  UPDATE_MGR: 'Update an employees manager.',
   EXIT: 'Exit'
 };
 
@@ -54,9 +59,9 @@ const start = () => {
         selectionOptions.REMOVE_EMPLOYEE,
         selectionOptions.ADD_ROLE,
         selectionOptions.REMOVE_ROLE,
-        selectionOptions.ADD_DEPARTMENT,
-        selectionOptions.REMOVE_DEPARTMENT,
         selectionOptions.UPDATE_ROLE,
+        selectionOptions.ADD_DEPARTMENT,
+        selectionOptions.REMOVE_DEPARTMENT,        
         selectionOptions.UPDATE_MGR,
         selectionOptions.EXIT,
       ],
@@ -172,6 +177,43 @@ const viewByDept = () => {
     })  
 }
 
+const viewByRole = () => {
+  connection.query(`SELECT title FROM role`, (err, data) => {
+    if(err) throw err;
+  
+    inquirer
+      .prompt({
+        name: 'empRole',
+        type: 'list',
+        choices() {
+          const choiceArray = [];
+          data.forEach(({ title }) => {
+            choiceArray.push(title);
+          });
+          return choiceArray;            
+        },
+        message: `Please select the title you wish to view.`
+      })
+      .then((answer) => {
+        const query = `
+          SELECT role.title,
+          employee.id AS employee_id, 
+          CONCAT(employee.first_name, ' ', employee.last_name) AS employee,
+          role.salary,
+          CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+          FROM employee
+          LEFT JOIN employee manager ON manager.id = employee.manager_id
+          LEFT JOIN role ON employee.role_id = role.id HAVING role.title = ?`;
+        connection.query(query, [answer.empRole], (err, res) => {
+          if(err) throw err;
+          console.log(`These employees are part of the ${answer.empRole} department.`);
+          console.table(res);
+          start();
+        })
+      })
+  })    
+}
+
 const viewByMgr = () => {
   inquirer
     .prompt({
@@ -284,6 +326,10 @@ const rmEmployee = () => {
         }
       )
     })
+}
+
+const addRole = () => {
+  
 }
 
 const updateRole = () => {
