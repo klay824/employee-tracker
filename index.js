@@ -13,11 +13,11 @@ const selectionOptions = {
   VIEW_ALL_BY_MGR: 'View all employees by manager.',
   ADD_EMPLOYEE: 'Add an employee.',
   ADD_ROLE: 'Add a title.',
-  REMOVE_EMPLOYEE: 'Remove an employee.',
   ADD_DEPARTMENT: 'Add a department',
+  REMOVE_EMPLOYEE: 'Remove an employee.',
   REMOVE_ROLE: 'Remove a title',
   REMOVE_DEPARTMENT: 'Remove a department',
-  UPDATE_ROLE: 'Update an employees role.',
+  UPDATE_ROLE: 'Update an employees title.',
   UPDATE_MGR: 'Update an employees manager.',
   EXIT: 'Exit'
 };
@@ -248,7 +248,7 @@ const addEmployee = () => {
                 },
                 (err) => {
                   if(err) throw err;
-                  console.log(`${answer.rmEmpFN} ${answer.rmEmpLN} is now an employee of Dunder Mifflin Paper Company. Let's get 'em a welcome basket!`);
+                  console.log(`${answer.newEmpFN} ${answer.newEmpLN} is now an employee of Dunder Mifflin Paper Company. Let's get 'em a welcome basket!`);
                   start();
                 }
               )
@@ -378,7 +378,7 @@ const rmRole = () => {
           `DELETE FROM role WHERE title = "${answer.rmRole}"`,
           (err) => {
             if(err) throw err;
-            console.log(`You have successfully remove the ${answer.rmRole} from the Dunder Mifflin Paper Company employee database.`)
+            console.log(`You have successfully remove the ${answer.rmRole} from the Dunder Mifflin Paper Company employee database.`);
             start();
           }
         )
@@ -387,6 +387,33 @@ const rmRole = () => {
 }
 
 const rmDepartment = () => {
+  connection.query(`SELECT name FROM department`, (err, data) => {
+    inquirer
+    .prompt(
+      {
+        name:'rmDept',
+        type: 'list',
+        choices() {
+          const choiceArr = [];
+          data.forEach(({ name }) => {
+            choiceArr.push(name);
+          });
+          return choiceArr;
+        },
+        message: 'Which department do you wish to remove?'
+      },
+    )
+    .then((answer) => {
+      connection.query(
+        `DELETE FROM department WHERE name = "${answer.rmDept}"`,
+        (err) => {
+          if(err) throw err;
+          console.log(`You have successfully remove the ${answer.rmDept} from the Dunder Mifflin Paper Company employee database.`);
+          start();
+        }
+      )
+    })
+  })
 
 }
 
