@@ -118,7 +118,7 @@ const start = () => {
 
         case selectionOptions.EXIT:
           connection.end();
-          process.exit(1);
+          process.exit(0);
         
         default:
           console.log(`Invalid action: #{answer.action}`);
@@ -283,29 +283,59 @@ const rmEmployee = () => {
     })
 }
 
-// const addRole = () => {
-//   inquirer
-//     .prompt([
-//       {
-//         name: 'newRole',
-//         type: 'input',
-//         message: 'Please enter the new title to add to Dunder Mifflin Paper Company',
-//       },
-//       {
-//         name: 'salary',
-//         type: 'input',
-//         message: 'Please enter the salary for the new title.',
-//       },
-//     ])
-//     .then((answer) => {
-//       connection.query(
-//         'INSERT INTO role SET ?',
-//         {
+const addRole = () => {
+  connection.query(`SELECT name AS department FROM department`, (err, deptData) => {
+    
+    inquirer
+      .prompt([
+        {
+          name: 'newRole',
+          type: 'input',
+          message: 'Please enter the new title to add to Dunder Mifflin Paper Company',
+        },
+        {
+          name: 'salary',
+          type: 'input',
+          message: 'Please enter the salary for the new title.',
+        },
+        {
+          name: 'dept',
+          type: 'list',
+          choices() {
+            const choiceArr = [];
+            deptData.forEach(( {department }) => {
+              choiceArr.push(department);
+            });
+            return choiceArr;
+          },
+          message: 'Please choose which department the new title is in.'
+        },
+      ])
+      .then((answer) => {
+        const query1 = `SELECT id FROM department WHERE name = "${answer.dept}"`
+        let deptId;
 
-//         }
-//       )
-//     })
-// }
+        connection.query(query1, (err, data) => {
+          deptId = data[0].id;
+          console.log(deptId);
+        
+            connection.query(
+              'INSERT INTO role SET ?',
+              {
+                title: answer.newRole,
+                salary: answer.salary,
+                department_id: deptId,
+              },
+              (err) => {
+                if(err) throw err;
+                console.log(`You have successfully added the ${answer.dept} title to Dunder Mifflin Paper Company!`);
+                start();
+              }
+            )
+        })    
+      })
+  })    
+}
 
 const updateRole = () => {
   inquirer
