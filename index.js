@@ -12,12 +12,12 @@ const selectionOptions = {
   VIEW_ALL_ROLES: 'View all titles.',
   VIEW_ALL_BY_MGR: 'View all employees by manager.',
   ADD_EMPLOYEE: 'Add an employee.',
-  REMOVE_EMPLOYEE: 'Remove an employee.',
   ADD_ROLE: 'Add a title.',
-  REMOVE_ROLE: 'Remove a title',
-  UPDATE_ROLE: 'Update an employees role.',
+  REMOVE_EMPLOYEE: 'Remove an employee.',
   ADD_DEPARTMENT: 'Add a department',
+  REMOVE_ROLE: 'Remove a title',
   REMOVE_DEPARTMENT: 'Remove a department',
+  UPDATE_ROLE: 'Update an employees role.',
   UPDATE_MGR: 'Update an employees manager.',
   EXIT: 'Exit'
 };
@@ -56,12 +56,12 @@ const start = () => {
         selectionOptions.VIEW_ALL_ROLES,
         selectionOptions.VIEW_ALL_BY_MGR,
         selectionOptions.ADD_EMPLOYEE,
-        selectionOptions.REMOVE_EMPLOYEE,
         selectionOptions.ADD_ROLE,
-        selectionOptions.REMOVE_ROLE,
-        selectionOptions.UPDATE_ROLE,
         selectionOptions.ADD_DEPARTMENT,
+        selectionOptions.REMOVE_EMPLOYEE,
+        selectionOptions.REMOVE_ROLE,
         selectionOptions.REMOVE_DEPARTMENT,        
+        selectionOptions.UPDATE_ROLE,
         selectionOptions.UPDATE_MGR,
         selectionOptions.EXIT,
       ],
@@ -88,28 +88,28 @@ const start = () => {
           addEmployee();
           break;
 
-        case selectionOptions.REMOVE_EMPLOYEE:
-          rmEmployee();
-          break;
-
         case selectionOptions.ADD_ROLE:
           addRole();
-          break;
-
-        case selectionOptions.REMOVE_ROLE:
-          rmRole();
-          break;
-
-        case selectionOptions.UPDATE_ROLE:
-          updateRole();
           break;
 
         case selectionOptions.ADD_DEPARTMENT:
           addDepartment();
           break;
 
+        case selectionOptions.REMOVE_EMPLOYEE:
+          rmEmployee();
+          break;
+
+        case selectionOptions.REMOVE_ROLE:
+          rmRole();
+          break;
+
         case selectionOptions.REMOVE_DEPARTMENT:
           rmDepartment();
+          break;
+
+        case selectionOptions.UPDATE_ROLE:
+          updateRole();
           break;
 
         case selectionOptions.UPDATE_MGR:
@@ -257,32 +257,6 @@ const addEmployee = () => {
     })
 }
 
-const rmEmployee = () => {
-  inquirer
-    .prompt([
-      {
-        name: 'rmEmpFN',
-        type: 'input',
-        message: 'Please enter the first name of the employee you wish to remove.',
-      },
-      {
-        name: 'rmEmpLN',
-        type: 'input',
-        message: 'Please enter the last name of the employee you wish to remove.',
-      },
-    ])
-    .then((answer) => {
-      connection.query(
-        `DELETE FROM employee WHERE first_name = "${answer.rmEmpFN}" AND last_name = "${answer.rmEmpLN}"`,
-        (err) => {
-          if(err) throw err;
-          console.log(`${answer.rmEmpFN} ${answer.rmEmpLN} is no longer an employee of Dunder Mifflin Paper Company. Sad day.`)
-          start();
-        }
-      )
-    })
-}
-
 const addRole = () => {
   connection.query(`SELECT name AS department FROM department`, (err, deptData) => {
     
@@ -303,7 +277,7 @@ const addRole = () => {
           type: 'list',
           choices() {
             const choiceArr = [];
-            deptData.forEach(( {department }) => {
+            deptData.forEach(({ department }) => {
               choiceArr.push(department);
             });
             return choiceArr;
@@ -335,6 +309,85 @@ const addRole = () => {
         })    
       })
   })    
+}
+
+const addDepartment = () => {
+  inquirer
+    .prompt({
+      name: 'newDept',
+      type: 'input',
+      message: 'Please enter the name of the department you wish to add.',
+    })
+    .then((answer) => {
+      connection.query(`INSERT INTO department (name) VALUES ("${answer.newDept}")`, 
+      (err) => {
+        if(err) throw err;
+        console.log(`You have successfully added ${answer.newDept} to Dunder Mifflin Paper Company!`);
+        start();
+      })
+    })
+}
+
+const rmEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        name: 'rmEmpFN',
+        type: 'input',
+        message: 'Please enter the first name of the employee you wish to remove.',
+      },
+      {
+        name: 'rmEmpLN',
+        type: 'input',
+        message: 'Please enter the last name of the employee you wish to remove.',
+      },
+    ])
+    .then((answer) => {
+      connection.query(
+        `DELETE FROM employee WHERE first_name = "${answer.rmEmpFN}" AND last_name = "${answer.rmEmpLN}"`,
+        (err) => {
+          if(err) throw err;
+          console.log(`${answer.rmEmpFN} ${answer.rmEmpLN} is no longer an employee of Dunder Mifflin Paper Company. Sad day.`)
+          start();
+        }
+      )
+    })
+}
+
+
+const rmRole = () => {
+  connection.query(`SELECT title FROM role`, (err, data) => {
+
+    inquirer
+      .prompt(
+        {
+          name: 'rmRole',
+          type: 'list',
+          choices() {
+            const choicesArr = [];
+            data.forEach(({ title }) => {
+              choicesArr.push(title);
+            });
+            return choicesArr;
+          },
+          message: 'Which title do you wish to remove?'
+        },
+      )
+      .then((answer) => {
+        connection.query(
+          `DELETE FROM role WHERE title = "${answer.rmRole}"`,
+          (err) => {
+            if(err) throw err;
+            console.log(`You have successfully remove the ${answer.rmRole} from the Dunder Mifflin Paper Company employee database.`)
+            start();
+          }
+        )
+      })
+  })
+}
+
+const rmDepartment = () => {
+
 }
 
 const updateRole = () => {
@@ -379,22 +432,7 @@ const updateRole = () => {
     })
 }
 
-const addDepartment = () => {
-  inquirer
-    .prompt({
-      name: 'newDept',
-      type: 'input',
-      message: 'Please enter the name of the department you wish to add.',
-    })
-    .then((answer) => {
-      connection.query(`INSERT INTO department (name) VALUES ("${answer.newDept}")`, 
-      (err) => {
-        if(err) throw err;
-        console.log(`You have successfully added ${answer.newDept} to Dunder Mifflin Paper Company!`);
-        start();
-      })
-    })
-}
+
 
 const updateMgr = () => {
 
@@ -406,16 +444,16 @@ const updateMgr = () => {
         {
           name: 'employeeFN',
           type: 'input',
-          message: 'Please enter the first name of the employee whose title you want to update.',
+          message: 'Please enter the first name of the employee whose manager you want to update.',
         },
         {
           name: 'employeeLN',
           type: 'input',
-          message: 'Please enter the last name of the employee whose title you want to update',
+          message: 'Please enter the last name of the employee whose manager you want to update',
         },
         {
           name: 'empNewMgr',
-          type: 'rawlist',
+          type: 'list',
           choices() {
             const choiceArray = [];
             data.forEach(({ employee }) => {
