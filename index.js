@@ -2,15 +2,18 @@ const mysql = require('mysql');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
+// bringing in constructor files
 const Department = require('./lib/department');
 const Employee = require('./lib/employee');
 const Role = require('./lib/role');
 
+// these are the selection option statements for the action choices
 const selectionOptions = {
   VIEW_ALL_EMPLOYEES: 'View all employees.',
   VIEW_ALL_DEPTS: 'View all departments.',
   VIEW_ALL_ROLES: 'View all titles.',
   VIEW_ALL_BY_MGR: 'View all employees by manager.',
+  VIEW_DEPT_BUDGET: 'View utlized budget by department',
   ADD_EMPLOYEE: 'Add an employee.',
   ADD_ROLE: 'Add a title.',
   ADD_DEPARTMENT: 'Add a department',
@@ -19,7 +22,6 @@ const selectionOptions = {
   REMOVE_DEPARTMENT: 'Remove a department',
   UPDATE_ROLE: 'Update an employees title.',
   UPDATE_MGR: 'Update an employees manager.',
-  VIEW_DEPT_BUDGET: 'View utlized budget by department',
   EXIT: 'Exit'
 };
 
@@ -45,6 +47,7 @@ connection.connect((err) => {
     start();
 });
 
+// This function serves as the 'main menu' for the program where all the employee tracker options are
 const start = () => {
   inquirer
     .prompt({
@@ -56,6 +59,7 @@ const start = () => {
         selectionOptions.VIEW_ALL_DEPTS,
         selectionOptions.VIEW_ALL_ROLES,
         selectionOptions.VIEW_ALL_BY_MGR,
+        selectionOptions.VIEW_DEPT_BUDGET,
         selectionOptions.ADD_EMPLOYEE,
         selectionOptions.ADD_ROLE,
         selectionOptions.ADD_DEPARTMENT,
@@ -64,11 +68,11 @@ const start = () => {
         selectionOptions.REMOVE_DEPARTMENT,        
         selectionOptions.UPDATE_ROLE,
         selectionOptions.UPDATE_MGR,
-        selectionOptions.VIEW_DEPT_BUDGET,
         selectionOptions.EXIT,
       ],
     })
     .then((answer) => {
+      // swtich statement to run a particular function based on the selection the user made
       switch (answer.action) {
         case selectionOptions.VIEW_ALL_EMPLOYEES:
           viewAll();
@@ -84,6 +88,10 @@ const start = () => {
 
         case selectionOptions.VIEW_ALL_BY_MGR:
           viewByMgr();
+          break;
+
+        case selectionOptions.VIEW_DEPT_BUDGET:
+          viewBudget();
           break;
 
         case selectionOptions.ADD_EMPLOYEE:
@@ -118,20 +126,17 @@ const start = () => {
           updateMgr();
           break;
 
-        case selectionOptions.VIEW_DEPT_BUDGET:
-          viewBudget();
-          break;
-
         case selectionOptions.EXIT:
           connection.end();
           process.exit(0);
                   
         default:
-          console.log(`Invalid action: #{answer.action}`);
+          console.log(`Invalid action: ${answer.action}`);
       }
     })
 }
 
+// function to view all employees and their title, department salary, and manager
 const viewAll = () => {
   const query = `
     SELECT 
@@ -153,6 +158,7 @@ const viewAll = () => {
   })
 }
 
+// function to view all departments
 const viewAllDept = () => {
   connection.query(
     `Select * FROM department`,
@@ -164,6 +170,7 @@ const viewAllDept = () => {
     })
 }
 
+// function to view all titles (roles)
 const viewAllRole = () => {
   connection.query(
     `Select title FROM role`,
@@ -175,6 +182,7 @@ const viewAllRole = () => {
     })
 }
 
+// function to view employees by manager
 const viewByMgr = () => {
   inquirer
     .prompt({
@@ -205,6 +213,7 @@ const viewByMgr = () => {
     })
 }
 
+// function to add an employee to the company database
 const addEmployee = () => {
   inquirer
     .prompt([
@@ -263,6 +272,7 @@ const addEmployee = () => {
     })
 }
 
+// function to add a new title (role) to the company database
 const addRole = () => {
   connection.query(`SELECT name AS department FROM department`, (err, deptData) => {
     
@@ -297,8 +307,7 @@ const addRole = () => {
 
         connection.query(query1, (err, data) => {
           deptId = data[0].id;
-          console.log(deptId);
-        
+                  
             connection.query(
               'INSERT INTO role SET ?',
               {
@@ -317,6 +326,7 @@ const addRole = () => {
   })    
 }
 
+// function to add a department to the company database
 const addDepartment = () => {
   inquirer
     .prompt({
@@ -334,6 +344,7 @@ const addDepartment = () => {
     })
 }
 
+// function to remove an employee from the company datbase
 const rmEmployee = () => {
   inquirer
     .prompt([
@@ -360,7 +371,7 @@ const rmEmployee = () => {
     })
 }
 
-
+// function to remove a title (role) from the database
 const rmRole = () => {
   connection.query(`SELECT title FROM role`, (err, data) => {
 
@@ -392,6 +403,7 @@ const rmRole = () => {
   })
 }
 
+// function to remove a department from the company database
 const rmDepartment = () => {
   connection.query(`SELECT name FROM department`, (err, data) => {
     inquirer
@@ -420,9 +432,9 @@ const rmDepartment = () => {
       )
     })
   })
-
 }
 
+// function to update an employee's title (role)
 const updateRole = () => {
   inquirer
     .prompt([
@@ -465,6 +477,7 @@ const updateRole = () => {
     })
 }
 
+// function to update an employee's manager
 const updateMgr = () => {
 
   connection.query(`SELECT CONCAT(first_name, ' ', last_name) AS employee FROM employee`, (err, data) => {
@@ -501,8 +514,7 @@ const updateMgr = () => {
             
         connection.query(query, (err, manager) => {
           managerId = manager[0].id;
-          console.log(managerId);
-        
+                  
             connection.query(`UPDATE employee 
             SET manager_id = ${managerId} 
             WHERE first_name = "${answer.employeeFN}" AND last_name = "${answer.employeeLN}"`,            
@@ -516,6 +528,7 @@ const updateMgr = () => {
   })
 }
 
+// function to view a department's utilized budget (combined salary of all the employees in that department)
 const viewBudget = () => {
   connection.query(`SELECT name FROM department`, (err, data) => {
     inquirer
