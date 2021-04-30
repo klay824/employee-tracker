@@ -1,5 +1,6 @@
 USE employee_trackerDB;
 
+-- inserting starting values into department table
 INSERT INTO department (name)
 VALUES 
 	('Accounting'),
@@ -12,6 +13,7 @@ VALUES
 	('Supplier Relations'),
 	('Warehouse');
 
+-- inserting starting values into role table
 INSERT INTO role (title, salary, department_id)
 VALUES
     ('Accounant', 45000, 1),
@@ -24,6 +26,7 @@ VALUES
     ('Supplier Rel Rep', 40000, 8),
     ('Warehouse Foreman', 45000, 9);
 
+-- inserting starting values into employee table
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES
     ('Oscar', 'Martinez', 1, 4),
