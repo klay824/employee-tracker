@@ -19,6 +19,7 @@ const selectionOptions = {
   REMOVE_DEPARTMENT: 'Remove a department',
   UPDATE_ROLE: 'Update an employees title.',
   UPDATE_MGR: 'Update an employees manager.',
+  VIEW_DEPT_BUDGET: 'View utlized budget by department',
   EXIT: 'Exit'
 };
 
@@ -63,6 +64,7 @@ const start = () => {
         selectionOptions.REMOVE_DEPARTMENT,        
         selectionOptions.UPDATE_ROLE,
         selectionOptions.UPDATE_MGR,
+        selectionOptions.VIEW_DEPT_BUDGET,
         selectionOptions.EXIT,
       ],
     })
@@ -116,10 +118,14 @@ const start = () => {
           updateMgr();
           break;
 
+        case selectionOptions.VIEW_DEPT_BUDGET:
+          viewBudget();
+          break;
+
         case selectionOptions.EXIT:
           connection.end();
           process.exit(0);
-        
+                  
         default:
           console.log(`Invalid action: #{answer.action}`);
       }
@@ -459,8 +465,6 @@ const updateRole = () => {
     })
 }
 
-
-
 const updateMgr = () => {
 
   connection.query(`SELECT CONCAT(first_name, ' ', last_name) AS employee FROM employee`, (err, data) => {
@@ -509,5 +513,41 @@ const updateMgr = () => {
             })
         })
       })
+  })
+}
+
+const viewBudget = () => {
+  connection.query(`SELECT name FROM department`, (err, data) => {
+    inquirer
+    .prompt(
+      {
+        name:'deptBudget',
+        type: 'list',
+        choices() {
+          const choiceArr = [];
+          data.forEach(({ name }) => {
+            choiceArr.push(name);
+          });
+          return choiceArr;
+        },
+        message: 'Please choose a department to view their utilized budget.'
+      },
+    )
+    .then((answer) => {
+      const query = `
+        SELECT 
+        department.name AS department,
+        SUM(role.salary) AS 'utilized budget'
+        FROM employee
+        LEFT JOIN role on employee.role_id = role.id
+        LEFT JOIN department on role.department_id = department.id
+        GROUP BY department.name
+        HAVING department.name = ?`;
+      connection.query(query, [answer.deptBudget], (err, data) => {
+        if(err) throw err;
+        console.table(data);
+        start();
+      })
+    })
   })
 }
