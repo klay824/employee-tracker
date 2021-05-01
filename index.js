@@ -184,92 +184,123 @@ const viewAllRole = () => {
 
 // function to view employees by manager
 const viewByMgr = () => {
-  inquirer
-    .prompt({
-      name: 'mgr',
-      type: 'list',
-      message: 'Choose a manager to view their direct reports.',
-      choices: ['Jan Levinson', 'Michael Scott',],
-    })
-    .then((answer) => {
-      const query = `
-        SELECT 
-        CONCAT(manager.first_name, ' ', manager.last_name) AS manager, 
-        CONCAT(employee.first_name, ' ', employee.last_name) AS employee, 
-        employee.id AS employee_id, 
-        role.title, 
-        department.name AS department, 
-        role.salary
-        FROM employee
-        LEFT JOIN employee manager ON manager.id = employee.manager_id
-        LEFT JOIN role ON employee.role_id = role.id
-        LEFT JOIN department ON role.department_id = department.id HAVING manager = ?`;
-      connection.query(query, [answer.mgr], (err, res) => {
-        if(err) throw err;
-        console.log(`These employees report directly to ${answer.mgr}.`)
-        console.table(res);
-        start();
+  connection.query(`SELECT CONCAT(first_name, ' ', last_name) AS manager FROM employee WHERE role_id = 2`, (err, data) =>{
+
+    inquirer
+      .prompt({
+        name: 'mgr',
+        type: 'list',
+        choices() {
+          const choiceArr = [];
+          data.forEach(({ manager }) => {
+            choiceArr.push(manager);
+          });
+          return choiceArr;
+        },
+        message: 'Please choose the manager whose direct reports you wish to view.'
       })
-    })
+      .then((answer) => {
+        const query = `
+          SELECT 
+          CONCAT(manager.first_name, ' ', manager.last_name) AS manager, 
+          CONCAT(employee.first_name, ' ', employee.last_name) AS employee, 
+          employee.id AS employee_id, 
+          role.title, 
+          department.name AS department, 
+          role.salary
+          FROM employee
+          LEFT JOIN employee manager ON manager.id = employee.manager_id
+          LEFT JOIN role ON employee.role_id = role.id
+          LEFT JOIN department ON role.department_id = department.id HAVING manager = ?`;
+        connection.query(query, [answer.mgr], (err, res) => {
+          if(err) throw err;
+          console.log(`These employees report directly to ${answer.mgr}.`)
+          console.table(res);
+          start();
+        })
+      })
+  })
 }
 
 // function to add an employee to the company database
 const addEmployee = () => {
-  inquirer
-    .prompt([
-      {
-        name: 'newEmpFN',
-        type: 'input',
-        message: 'Please enter the first name of the new employee.',
-      },
-      {
-        name: 'newEmpLN',
-        type: 'input',
-        message: 'Please enter the last name of the new employee.',
-      },
-      {
-        name: 'newEmpTitle',
-        type: 'list',
-        message: 'Please select the title of the new employee.',
-        choices: ['Accountant', 'Manager', 'Customer Service Rep', 'HR Rep', 'Receptionist', 'QA Rep', 'Salesman', 'Supplier Rel Rep', 'Warehouse Foreman',],
-      },
-      {
-        name: 'newEmpMgr',
-        type: 'list',
-        message: 'Please select the manager for the new employee.',
-        choices: ['Jan Levinson', 'Michael Scott',],
-      },
-    ])
-    
-    .then((answer) => {
-      const query1 = `SELECT id FROM role WHERE title = "${answer.newEmpTitle}"`
-      const query2 = `SELECT id FROM employee WHERE first_name = "${answer.newEmpMgr.split(' ')[0]}" AND last_name = "${answer.newEmpMgr.split(' ')[1]}"`
-      let roleId;
-      let managerId;
+  const query1 = `SELECT title FROM role`
+  const query2 = `SELECT CONCAT(first_name, ' ', last_name) AS manager FROM employee WHERE role_id = 2`
 
-      connection.query(query1, (err, role) => {
-        roleId = role[0].id;
+  connection.query(query1, (err, data1) => {
 
-          connection.query(query2, (err, manager) => {
-            managerId = manager[0].id;
-            
-              connection.query(
-                'INSERT INTO employee SET ?',
-                {
-                  first_name: answer.newEmpFN,
-                  last_name: answer.newEmpLN,
-                  role_id: roleId,
-                  manager_id: managerId,
-                },
-                (err) => {
-                  if(err) throw err;
-                  console.log(`${answer.newEmpFN} ${answer.newEmpLN} is now an employee of Dunder Mifflin Paper Company. Let's get 'em a welcome basket!`);
-                  start();
-                }
-              )
+    connection.query(query2, (err, data2) => {
+
+      inquirer
+        .prompt([
+          {
+            name: 'newEmpFN',
+            type: 'input',
+            message: 'Please enter the first name of the new employee.',
+          },
+          {
+            name: 'newEmpLN',
+            type: 'input',
+            message: 'Please enter the last name of the new employee.',
+          },
+          {
+            name: 'newEmpTitle',
+            type: 'list',
+            choices() {
+              const titleChoices = [];
+              data1.forEach(({ title }) => {
+                titleChoices.push(title);
+              });
+              return titleChoices;
+            },
+            message: 'Please choose the title for the new employee.'
+          },
+          {
+            name: 'newEmpMgr',
+            type: 'list',
+            message: 'Please select the manager for the new employee.',
+            choices() {
+              const mgrArr = [];
+              data2.forEach(({ manager }) =>{
+                mgrArr.push(manager);
+              });
+              return mgrArr;
+            },
+            message: 'Please choose the manager for the new employee.'
+          },
+        ])
+        
+        .then((answer) => {
+          const query1 = `SELECT id FROM role WHERE title = "${answer.newEmpTitle}"`
+          const query2 = `SELECT id FROM employee WHERE first_name = "${answer.newEmpMgr.split(' ')[0]}" AND last_name = "${answer.newEmpMgr.split(' ')[1]}"`
+          let roleId;
+          let managerId;
+
+          connection.query(query1, (err, role) => {
+            roleId = role[0].id;
+
+              connection.query(query2, (err, manager) => {
+                managerId = manager[0].id;
+                
+                  connection.query(
+                    'INSERT INTO employee SET ?',
+                    {
+                      first_name: answer.newEmpFN,
+                      last_name: answer.newEmpLN,
+                      role_id: roleId,
+                      manager_id: managerId,
+                    },
+                    (err) => {
+                      if(err) throw err;
+                      console.log(`${answer.newEmpFN} ${answer.newEmpLN} is now an employee of Dunder Mifflin Paper Company. Let's get 'em a welcome basket!`);
+                      start();
+                    }
+                  )
+              })
           })
-      })
+        })
     })
+  })
 }
 
 // function to add a new title (role) to the company database
@@ -489,7 +520,7 @@ const updateRole = () => {
 // function to update an employee's manager
 const updateMgr = () => {
 
-  connection.query(`SELECT CONCAT(first_name, ' ', last_name) AS employee FROM employee`, (err, data) => {
+  connection.query(`SELECT CONCAT(first_name, ' ', last_name) AS manager FROM employee WHERE role_id = 2`, (err, data) => {
     if(err) throw err;  
     
     inquirer
@@ -509,8 +540,8 @@ const updateMgr = () => {
           type: 'list',
           choices() {
             const choiceArray = [];
-            data.forEach(({ employee }) => {
-              choiceArray.push(employee);
+            data.forEach(({ manager }) => {
+              choiceArray.push(manager);
             });
             return choiceArray;            
           },
