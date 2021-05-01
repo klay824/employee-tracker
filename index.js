@@ -436,45 +436,54 @@ const rmDepartment = () => {
 
 // function to update an employee's title (role)
 const updateRole = () => {
-  inquirer
-    .prompt([
-      {
-        name: 'employeeFN',
-        type: 'input',
-        message: 'Please enter the first name of the employee whose title you want to update.',
-      },
-      {
-        name: 'employeeLN',
-        type: 'input',
-        message: 'Please enter the last name of the employee whose title you want to update',
-      },
-      {
-        name: 'empNewRole',
-        type: 'list',
-        message: 'Please choose the new title for the employee.',
-        choices: ['Accountant', 'Manager', 'Customer Service Rep', 'HR Rep', 'Receptionist', 'QA Rep', 'Salesman', 'Supplier Rel Rep', 'Warehouse Foreman',],
-      },
-    ])
-    // going to need to do two queries like in addEmployee() because the rold_id is a number not a string
-    .then((answer) => {
-      const query = `SELECT id FROM role WHERE title = "${answer.empNewRole}"`
-      let roleId;
-      
-      connection.query(query, (err, role) => {        
-        roleId = role[0].id;        
-      
-        connection.query(
-          `UPDATE employee
-          SET role_id = ${roleId}
-          WHERE first_name = "${answer.employeeFN}" AND last_name = "${answer.employeeLN}"`,
-          (err) => {
-            if(err) throw err;
-            console.log(`You have successfully updated ${answer.employeeFN} ${answer.employeeLN}'s title with Dunder Mifflin Paper Company!`);
-            start();
-          }
-        )
-      })  
-    })
+  connection.query(`SELECT title FROM role`, (err,data) => {
+  
+    inquirer
+      .prompt([
+        {
+          name: 'employeeFN',
+          type: 'input',
+          message: 'Please enter the first name of the employee whose title you want to update.',
+        },
+        {
+          name: 'employeeLN',
+          type: 'input',
+          message: 'Please enter the last name of the employee whose title you want to update',
+        },
+        {
+          name: 'empNewRole',
+          type: 'list',
+          choices() {
+            const choiceArr = [];
+            data.forEach(({ title }) => {
+              choiceArr.push(title);
+            });
+            return choiceArr;
+          },
+          message: 'Please choose a new title for the employee.'
+        },
+      ])
+      // going to need to do two queries like in addEmployee() because the rold_id is a number not a string
+      .then((answer) => {
+        const query = `SELECT id FROM role WHERE title = "${answer.empNewRole}"`
+        let roleId;
+        
+        connection.query(query, (err, role) => {        
+          roleId = role[0].id;        
+        
+          connection.query(
+            `UPDATE employee
+            SET role_id = ${roleId}
+            WHERE first_name = "${answer.employeeFN}" AND last_name = "${answer.employeeLN}"`,
+            (err) => {
+              if(err) throw err;
+              console.log(`You have successfully updated ${answer.employeeFN} ${answer.employeeLN}'s title with Dunder Mifflin Paper Company!`);
+              start();
+            }
+          )
+        })  
+      })
+  })
 }
 
 // function to update an employee's manager
